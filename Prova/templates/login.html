@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="follow,index">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="🔐 An Open Source Template for Login Page From Scratch Without Any CSS Framework">
+    <meta name="keywords" content="login page css, login template, login css, login form template">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css') }}" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Betting</title>
+</head>
+<body>
+    <div class="upper">
+        <!--
+        <div class="logo">
+            <a href="#">
+
+                <img src="{{ url_for('static', filename='sports-betting-statistics.png') }}" class="img-logo"/>
+
+            </a>
+        </div>
+        -->
+        <div class="login-div">
+            <form class="login" method="POST" action="{{ url_for('Login') }}">
+                <h1>Sign In</h1>
+                <div class="input-text">
+                    <input type="text" id="inputEmail" name="email" placeholder="Username or Email" />
+                    <div class="warning-input" id="warningEmail">
+                        Please enter a valid email or phone number.
+                    </div>
+                </div>
+
+                <div class="input-text">
+                    <input type="password" id="inputPassword" name="password" placeholder="Password" />
+                    <div class="warning-input" id="warningPassword">
+                        Your password must contain between 4 and 60 characters.
+                    </div>
+                </div>
+
+                <div>
+                    <button class="signin-button">Sign In</button>
+                </div>
+                <div class="remember-flex">
+                    <div>
+                        <input type="checkbox">
+                        <label class="color_text">Remember me</label>
+                    </div>
+                    <div class="help">
+                        <a class="color_text" href="#">Need help?</a>
+                    </div>
+                </div>
+                <div class="new-members">
+                    <br> New to Betting? <a href="{{ url_for('Registration') }}" class="signup-link">Sign up now</a>.
+                </div>
+                <div class="protection color_link help">
+                    This page is protected by Google reCAPTCHA to ensure you're not a bot. <a href="#">Learn more.</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
