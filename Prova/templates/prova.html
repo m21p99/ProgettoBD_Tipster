@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tipster Page</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styleProva.css') }}">
+    <style>
+        /* Stile per la sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -140px;
+            /* Nascondi la sidebar */
+            height: 100%;
+            width: 80px;
+            /* Larghezza ridotta della sidebar */
+            background-color: rgba(0, 128, 0, 0.8);
+            /* Colore verde trasparente */
+            color: #fff;
+            padding: 10px;
+            transition: left 0.3s ease;
+            /* Transizione per l'effetto di scorrimento */
+            z-index: 1000;
+            /* Assicurati che la sidebar sia sopra gli altri elementi */
+        }
+
+        .sidebar a {
+            display: block;
+            margin-bottom: 2px;
+            text-decoration: none;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .sidebar a:hover {
+            color: #ddd;
+        }
+
+        /* Aggiungi una classe per visualizzare la sidebar */
+        .sidebar.show {
+            left: 0;
+        }
+
+        /* Stile per il contenuto principale */
+        .content {
+            padding-left: 140px;
+            /* Spazio per la sidebar */
+            transition: padding-left 0.3s ease;
+        }
+
+        /* Quando la sidebar è mostrata, riduci lo spazio */
+        .content.sidebar-visible {
+            padding-left: 10px;
+        }
+
+        /* Stile per il contenuto della pagina */
+        .header,
+        .container,
+        .filter-section,
+        .tipster-section {
+            padding: 20px;
+        }
+
+        /* Stile per l'area trasparente tra la sidebar e la ricerca dei campionati */
+        .transparent-area {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 10px;
+            /* Larghezza dell'area trasparente */
+            height: 100%;
+            /* Altezza pari all'intera pagina */
+            z-index: 999;
+            /* Posizionamento sotto la sidebar ma sopra il resto del contenuto */
+            pointer-events: none;
+            /* Evita che l'area trasparente interagisca con il mouse */
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="transparent-area"></div>
+
+    <div class="sidebar" id="sidebar">
+        <a href="{{ url_for('profilo', username=user['username']) }}">Visualizza informazioni Profilo</a>
+        <a href="{{ url_for('crea_schedina')}}">Crea la tua schedina</a>
+    </div>
+
+    <div class="header">
+        <h1>Benvenuto su Tipster</h1>
+        <p>Il primo social di scommesse</p>
+        <h1> Benvenuto {{ user['username'] }}!</h1>
+        <form action="{{ url_for('logout') }}" method="get">
+            <button type="submit">Logout</button>
+        </form>
+    </div>
+
+    <div class="container">
+        <div class="search-bar">
+            <input type="text" id="searchTipster" placeholder="Cerca un Tipster">
+        </div>
+    </div>
+
+    <div class="filter-section">
+        <h2>Seleziona i filtri per la tua multipla</h2>
+        <!-- Filtro per selezionare il campionato -->
+        <form id="filterForm" method="POST" action="{{ url_for('filtro_partite') }}">
+            <div class="form-group">
+                <label for="selectChampionship">Seleziona il Campionato</label>
+                <div class="dropdown">
+                    <div class="menu-header">Seleziona il Campionato</div>
+                    <div class="dropdown-content">
+                        {% for competition in distinct_competitions %}
+                        <a href="javascript:void(0)" onclick="selectCompetition('{{ competition }}')">{{ competition
+                            }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+                <input type="hidden" id="selectChampionship" name="championship">
+                <div class="selected-championships" id="selectedChampionships"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="selectOverUnder">Seleziona Over/Under</label>
+                <select id="selectOverUnder" name="overUnder">
+                    <option value="">-- Scegli --</option>
+                    <option value="under25">Under 2.5</option>
+                    <option value="over25">Over 2.5</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="selectGolNogol">Seleziona Gol/No-Gol</label>
+                <select id="selectGolNogol" name="GolNogol">
+                    <option value="">-- Scegli --</option>
+                    <option value="Gol">GOL</option>
+                    <option value="NoGol">NOGOL</option>
+                </select>
+            </div>
+
+            <button type="button" onclick="applyFilters()">Applica Filtri</button>
+            <button type="button" onclick="resetFilters()">Reset Filtri</button>
+
+        </form>
+    </div>
+
+    <div id="risultati">
+        <!-- Qui verranno inseriti dinamicamente i risultati della query -->
+    </div>
+
+    <div class="tipster-section" id="tipsterSection">
+        {% for user in tipster_users %}
+        {% set index = loop.index0 %}
+        {% set profile_image = profile_images_list[index % profile_images_list|length] %}
+        <div class="tipster" data-username="{{ user['username'] }}">
+            <img src="{{ url_for('static', filename='imageProfile/' + profile_image) }}"
+                alt="Foto profilo di {{ user['name'] }}">
+            <p><strong>{{ user['username'] }}</strong></p>
+            <div class="buttons">
+                <form action="{{ url_for('profilo', username=user['username']) }}" method="get">
+                    <button type="submit">Vai al Profilo</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Modale -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        // Funzione per applicare i filtri
+        function applyFilters() {
+            var form = document.getElementById('filterForm');
+            var formData = new FormData(form);
+
+            fetch('/filtro_partite', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('risultati').innerHTML = html;
+                });
+        }
+
+        // Funzione per selezionare il campionato
+        let selectedCompetitions = [];
+
+        function selectCompetition(competition) {
+            if (!selectedCompetitions.includes(competition)) {
+                selectedCompetitions.push(competition);
+                updateSelectedChampionships();
+            }
+        }
+
+        function removeCompetition(competition) {
+            selectedCompetitions = selectedCompetitions.filter(item => item !== competition);
+            updateSelectedChampionships();
+        }
+
+        function updateSelectedChampionships() {
+            const selectedContainer = document.getElementById('selectedChampionships');
+            selectedContainer.innerHTML = '';
+            selectedCompetitions.forEach(competition => {
+                const span = document.createElement('span');
+                span.textContent = competition;
+
+                const closeBtn = document.createElement('button');
+                closeBtn.textContent = 'x';
+                closeBtn.classList.add('close-btn');
+                closeBtn.onclick = function () {
+                    removeCompetition(competition);
+                };
+
+                span.appendChild(closeBtn);
+                selectedContainer.appendChild(span);
+            });
+            document.getElementById('selectChampionship').value = selectedCompetitions.join(',');
+            document.querySelector('.dropdown .menu-header').textContent = 'Campionati Selezionati';
+        }
+
+        // Funzione per resettare i filtri
+        function resetFilters() {
+            selectedCompetitions = [];
+            document.getElementById('selectChampionship').value = '';
+            document.getElementById('selectOverUnder').selectedIndex = 0;
+            document.getElementById('selectGolNogol').selectedIndex = 0;
+            updateSelectedChampionships();
+            document.getElementById('risultati').innerHTML = '';
+        }
+
+        // Gestione dell'evento per mostrare/nascondere la sidebar
+        document.addEventListener('mousemove', function (e) {
+            const sidebar = document.getElementById('sidebar');
+            const transparentArea = document.querySelector('.transparent-area');
+            const threshold = 160; // Larghezza dell'area trasparente in pixel
+
+            if (e.clientX < threshold) {
+                sidebar.classList.add('show');
+                document.querySelector('.content').classList.add('sidebar-visible');
+                transparentArea.style.width = '10px'; // Larghezza dell'area trasparente visibile
+                transparentArea.style.pointerEvents = 'auto'; // Abilita il passaggio del mouse sull'area trasparente
+            } else {
+                sidebar.classList.remove('show');
+                document.querySelector('.content').classList.remove('sidebar-visible');
+                transparentArea.style.width = '0'; // Nascondi l'area trasparente
+                transparentArea.style.pointerEvents = 'none'; // Disabilita il passaggio del mouse sull'area trasparente
+            }
+        });
+
+        document.getElementById('searchTipster').addEventListener('input', function () {
+            const query = this.value.toLowerCase();
+            const tipsterSection = document.getElementById('tipsterSection');
+            const allTipsters = tipsterSection.getElementsByClassName('tipster');
+
+            if (query.length > 0) {
+                // Nascondi tutti i tipster e mostra solo quelli che corrispondono alla query
+                Array.from(allTipsters).forEach(tipster => {
+                    const username = tipster.getAttribute('data-username').toLowerCase();
+                    if (username.startsWith(query)) {
+                        tipster.style.display = ''; // Mostra l'elemento
+                    } else {
+                        tipster.style.display = 'none'; // Nascondi l'elemento
+                    }
+                });
+            } else {
+                // Mostra tutti i tipster se la query è vuota
+                Array.from(allTipsters).forEach(tipster => {
+                    tipster.style.display = ''; // Mostra l'elemento
+                });
+            }
+        });
+    </script>
+</body>
+</html>

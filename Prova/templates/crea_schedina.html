@@ -1,0 +1,102 @@
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tipster Page</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='crea.css') }}">
+</head>
+
+<body>
+
+    <div class="filter-section">
+        <h2>Seleziona i filtri per la tua multipla</h2>
+        <p>Welcome, {{ username }}!</p>
+        <!-- Filtro per selezionare il campionato -->
+        <form id="filterForm" method="POST" action="{{ url_for('filtro_partite1') }}">
+            <div class="form-group">
+                <label for="selectChampionship">Seleziona il Campionato</label>
+                <div class="dropdown">
+                    <div class="menu-header">Seleziona il Campionato</div>
+                    <div class="dropdown-content">
+                        {% for competition in distinct_competitions %}
+                        <a href="javascript:void(0)" onclick="selectCompetition('{{ competition }}')">{{ competition
+                            }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+                <input type="hidden" id="selectChampionship" name="championship">
+                <div class="selected-championships" id="selectedChampionships"></div>
+            </div>
+            <button type="button" onclick="applyFilters()">Applica Filtri</button>
+        </form>
+
+        
+        <script>
+
+            function applyFilters() {
+                var form = document.getElementById('filterForm');
+                var formData = new FormData(form);
+
+                fetch('/filtro_partite1', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => response.text())
+                    .then(html => {
+                        console.log(html);  // Aggiungi questo per verificare la risposta
+                        window.location.href = '/visualizza_partite';  // Reindirizza alla pagina visualizza_partite
+                    })
+                    .catch(error => console.error('Errore:', error));  // Gestisci eventuali errori
+            }
+
+
+
+            // Funzione per selezionare il campionato
+            let selectedCompetitions = [];
+
+            function selectCompetition(competition) {
+                if (!selectedCompetitions.includes(competition)) {
+                    selectedCompetitions.push(competition);
+                    updateSelectedChampionships();
+                }
+            }
+
+            function removeCompetition(competition) {
+                selectedCompetitions = selectedCompetitions.filter(item => item !== competition);
+                updateSelectedChampionships();
+            }
+
+            function updateSelectedChampionships() {
+                const selectedContainer = document.getElementById('selectedChampionships');
+                selectedContainer.innerHTML = '';
+                selectedCompetitions.forEach(competition => {
+                    const span = document.createElement('span');
+                    span.textContent = competition;
+
+                    const closeBtn = document.createElement('button');
+                    closeBtn.textContent = 'x';
+                    closeBtn.classList.add('close-btn');
+                    closeBtn.onclick = function () {
+                        removeCompetition(competition);
+                    };
+
+                    span.appendChild(closeBtn);
+                    selectedContainer.appendChild(span);
+                });
+                document.getElementById('selectChampionship').value = selectedCompetitions.join(',');
+                document.querySelector('.dropdown .menu-header').textContent = 'Campionati Selezionati';
+            }
+
+            // Funzione per resettare i filtri
+            function resetFilters() {
+                selectedCompetitions = [];
+                document.getElementById('selectChampionship').value = '';
+                updateSelectedChampionships();
+                document.getElementById('risultati').innerHTML = '';
+            }
+        </script>
+    </div>
+</body>
+
+</html>

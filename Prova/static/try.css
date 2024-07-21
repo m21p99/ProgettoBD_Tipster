@@ -1,0 +1,103 @@
+/* try.css */
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0; /* Colore di sfondo per tutto il corpo */
+    text-align: center; /* Centrare il testo nel corpo della pagina */
+}
+
+.container {
+    width: 80%; /* Larghezza della sezione principale */
+    margin: 20px auto; /* Margini automatici per centrare la sezione */
+}
+
+.event-table {
+    width: 100%; /* Larghezza della tabella */
+    margin-top: 20px; /* Margine superiore */
+    background-color: #d1f7cf; /* Colore di sfondo verde per la tabella */
+    border-collapse: collapse; /* Unione dei bordi delle celle */
+}
+
+.event-table th, .event-table td {
+    border: 1px solid black; /* Bordo per la tabella, intestazioni e celle */
+    padding: 8px; /* Spaziatura interna per intestazioni e celle */
+    text-align: center; /* Centrare il testo nelle celle */
+}
+
+.event-table th {
+    background-color: #4CAF50; /* Colore di sfondo verde per le intestazioni */
+    color: white; /* Colore del testo per le intestazioni */
+}
+
+.odds-button {
+    background-color: #4CAF50; /* Colore di sfondo verde per i pulsanti */
+    color: white; /* Colore del testo bianco */
+    border: 1px solid #4CAF50; /* Bordo sottile verde */
+    padding: 10px 20px; /* Spaziatura interna */
+    cursor: pointer; /* Cambia il cursore al passaggio del mouse */
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s; /* Transizioni animate */
+    border-radius: 5px; /* Bordo arrotondato */
+}
+
+.odds-button:hover {
+    background-color: #45a049; /* Cambia colore al passaggio del mouse */
+    border-color: #45a049; /* Cambia colore del bordo al passaggio del mouse */
+}
+
+
+.cart-container {
+    width: 80%; /* Larghezza del contenitore del carrello */
+    margin: 20px auto; /* Margini automatici per centrare il contenitore */
+    background-color: #ffffff; /* Colore di sfondo bianco */
+    padding: 20px; /* Spaziatura interna */
+    border-radius: 8px; /* Bordo arrotondato */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Ombra leggera */
+}
+
+#cart {
+    list-style-type: none; /* Nessun puntino di elenco */
+    padding: 0; /* Rimuove lo spazio interno predefinito */
+}
+
+#cart li {
+    border-bottom: 1px solid #ccc; /* Bordo inferiore sottile per ogni elemento del carrello */
+    padding: 8px 0; /* Spaziatura interna per ogni elemento del carrello */
+    text-align: left; /* Allinea il testo a sinistra */
+}
+
+#clear-cart {
+    background-color: #f44336; /* Colore di sfondo rosso per il pulsante */
+    color: white; /* Colore del testo bianco */
+    border: none; /* Nessun bordo */
+    padding: 10px 20px; /* Spaziatura interna */
+    cursor: pointer; /* Cambia il cursore al passaggio del mouse */
+    transition: background-color 0.3s; /* Transizione animata */
+}
+
+#clear-cart:hover {
+    background-color: #d32f2f; /* Cambia colore al passaggio del mouse */
+}
+
+
+/* Style del carrello quando vengono inseriti i dati*/
+.cart-item {
+    padding: 10px;
+    margin-bottom: 5px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.cart-item button {
+    margin-left: 10px;
+    padding: 5px 10px;
+    background-color: #ff6347;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+.cart-item button:hover {
+    background-color: #e74c3c;
+}

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tipster Page</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styleProva.css') }}">
+</head>
+
+<body>
+
+    <div class="header">
+        <h1>Benvenuto su Tipster</h1>
+        <p>Il primo social di scommesse</p>
+        <div class="buttons">
+            <a id="loginBtn" class="login-btn" href="javascript:void(0)">Login</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="search-bar">
+            <input type="text" id="searchTipster" placeholder="Cerca un Tipster">
+        </div>
+    </div>
+
+    <div class="filter-section">
+        <h2>Seleziona i filtri per la tua multipla</h2>
+        <!-- Filtro per selezionare il campionato -->
+        <form id="filterForm" method="POST" action="{{ url_for('filtro_partite') }}">
+            <div class="form-group">
+                <label for="selectChampionship">Seleziona il Campionato</label>
+                <div class="dropdown">
+                    <div class="menu-header">Seleziona il Campionato</div>
+                    <div class="dropdown-content">
+                        {% for competition in distinct_competitions %}
+                        <a href="javascript:void(0)" onclick="selectCompetition('{{ competition }}')">{{ competition
+                            }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+                <input type="hidden" id="selectChampionship" name="championship">
+                <div class="selected-championships" id="selectedChampionships"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="selectOverUnder">Seleziona Over/Under</label>
+                <select id="selectOverUnder" name="overUnder">
+                    <option value="">-- Scegli --</option>
+                    <option value="under25">Under 2.5</option>
+                    <option value="over25">Over 2.5</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="selectGolNogol">Seleziona Gol/No-Gol</label>
+                <select id="selectGolNogol" name="GolNogol">
+                    <option value="">-- Scegli --</option>
+                    <option value="Gol">GOL</option>
+                    <option value="NoGol">NOGOL</option>
+                </select>
+            </div>
+
+            <button type="button" onclick="applyFilters()">Applica Filtri</button>
+            <button type="button" onclick="resetFilters()">Reset Filtri</button>
+
+        </form>
+    </div>
+
+    <div id="risultati">
+        <!-- Qui verranno inseriti dinamicamente i risultati della query -->
+    </div>
+
+    <div class="tipster-section" id="tipsterSection">
+        {% for user in tipster_users %}
+        {% set index = loop.index0 %}
+        {% set profile_image = profile_images_list[index % profile_images_list|length] %}
+        <div class="tipster" data-username="{{ user['username'] }}">
+            <img src="{{ url_for('static', filename='imageProfile/' + profile_image) }}"
+                alt="Foto profilo di {{ user['name'] }}">
+            <p><strong>{{ user['username'] }}</strong></p>
+            <div class="buttons">
+                <form action="{{ url_for('profilo', username=user['username']) }}" method="get">
+                    <button type="submit">Vai al Profilo</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Modale -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginBtn').onclick = function () {
+            document.getElementById('loginModal').style.display = "block";
+            var loginUrl = "{{ url_for('Login') }}"; // Percorso al login generato da Flask
+            fetch(loginUrl)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('modalBody').innerHTML = html;
+                });
+        }
+
+        // Chiudi il modale
+        document.querySelector('.close').onclick = function () {
+            document.getElementById('loginModal').style.display = "none";
+        }
+
+        // Chiudi il modale quando clicchi fuori
+        window.onclick = function (event) {
+            if (event.target == document.getElementById('loginModal')) {
+                document.getElementById('loginModal').style.display = "none";
+            }
+        }
+
+        // Funzione per applicare i filtri
+        function applyFilters() {
+            var form = document.getElementById('filterForm');
+            var formData = new FormData(form);
+
+            fetch('/filtro_partite', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('risultati').innerHTML = html;
+                });
+        }
+
+        // Funzione per selezionare il campionato
+        let selectedCompetitions = [];
+
+        function selectCompetition(competition) {
+            if (!selectedCompetitions.includes(competition)) {
+                selectedCompetitions.push(competition);
+                updateSelectedChampionships();
+            }
+        }
+
+        function removeCompetition(competition) {
+            selectedCompetitions = selectedCompetitions.filter(item => item !== competition);
+            updateSelectedChampionships();
+        }
+
+        function updateSelectedChampionships() {
+            const selectedContainer = document.getElementById('selectedChampionships');
+            selectedContainer.innerHTML = '';
+            selectedCompetitions.forEach(competition => {
+                const span = document.createElement('span');
+                span.textContent = competition;
+
+                const closeBtn = document.createElement('button');
+                closeBtn.textContent = 'x';
+                closeBtn.classList.add('close-btn');
+                closeBtn.onclick = function () {
+                    removeCompetition(competition);
+                };
+
+                span.appendChild(closeBtn);
+                selectedContainer.appendChild(span);
+            });
+            document.getElementById('selectChampionship').value = selectedCompetitions.join(',');
+            document.querySelector('.dropdown .menu-header').textContent = 'Campionati Selezionati';
+        }
+
+        // Funzione per resettare i filtri
+        function resetFilters() {
+            selectedCompetitions = [];
+            document.getElementById('selectChampionship').value = '';
+            document.getElementById('selectOverUnder').selectedIndex = 0;
+            document.getElementById('selectGolNogol').selectedIndex = 0;
+            updateSelectedChampionships();
+            document.getElementById('risultati').innerHTML = '';
+        }
+
+
+        document.getElementById('searchTipster').addEventListener('input', function () {
+            const query = this.value.toLowerCase();
+            const tipsterSection = document.getElementById('tipsterSection');
+            const allTipsters = tipsterSection.getElementsByClassName('tipster');
+
+            if (query.length > 0) {
+                // Nascondi tutti i tipster e mostra solo quelli che corrispondono alla query
+                Array.from(allTipsters).forEach(tipster => {
+                    const username = tipster.getAttribute('data-username').toLowerCase();
+                    if (username.startsWith(query)) {
+                        tipster.style.display = ''; // Mostra l'elemento
+                    } else {
+                        tipster.style.display = 'none'; // Nascondi l'elemento
+                    }
+                });
+            } else {
+                // Mostra tutti i tipster se la query è vuota
+                Array.from(allTipsters).forEach(tipster => {
+                    tipster.style.display = ''; // Mostra l'elemento
+                });
+            }
+        });
+
+    </script>
+</body>
+
+</html>

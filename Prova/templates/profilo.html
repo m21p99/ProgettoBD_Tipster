@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profilo di {{ user['username'] }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='profilo.css') }}">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Div per le informazioni dell'utente -->
+        <div class="user-info bg-light p-4 mb-4 rounded shadow-sm">
+            <h1 class="display-4 mb-3">Profilo di {{ user["username"]}}</h1>
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="lead"><strong>Nome:</strong> {{ user['name'] }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="lead"><strong>Username:</strong> {{ user['username'] }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sezione Le tue Scommesse -->
+        <div class="bg-white p-3 mb-3">
+            <h2 class="mb-3">Le tue Scommesse</h2>
+
+            {% if schedine %}
+            {% for group in schedine %}
+            <div class="schedina-group mb-4" id="schedina-{{ loop.index }}">
+                <h3>Schedina {{ loop.index }}</h3>
+                <table class="table table-dark table-striped">
+                    <thead>
+                        <tr>
+                            <th>Match ID</th>
+                            <th>ID schedina</th>
+                            <th>Competizione</th>
+                            <th>Data</th>
+                            <th>Casa</th>
+                            <th>Trasferta</th>
+                            <th>Esito Pronosticato</th>
+                            <th>Quota Selezionata</th>
+                            <th>Elimina</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for scommessa in group %}
+                        <tr>
+                            <td>{{ scommessa['match_id'] }}</td>
+                            <td class="cart-id">{{ scommessa['cart_id'] }}</td>
+                            <td>{{ scommessa['competition_name'] }}</td>
+                            <td>{{ scommessa['date_start'] }}</td>
+                            <td>{{ scommessa['home_team_name'] }}</td>
+                            <td>{{ scommessa['away_team_name'] }}</td>
+                            <td>{{ scommessa['odd_type'] }}</td>
+                            <td>{{ scommessa['odd_value'] }}</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" onclick="eliminaScommessa('{{ scommessa['match_id'] }}')">Elimina</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div class="text-right">
+                    <button type="button" class="btn btn-danger" onclick="rimuoviSchedina({{ loop.index }})">Rimuovi
+                        Schedina</button>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p>Nessuna schedina trovata.</p>
+            {% endif %}
+        </div>
+
+        <!-- Link per tornare indietro o altre azioni -->
+        <a href="{{ url_for('prova') }}" class="btn btn-primary mb-3">Torna alla Homepage</a>
+
+    </div>
+
+    <!-- Script JavaScript per gestire l'eliminazione della scommessa -->
+    <script>
+        function eliminaScommessa(scommessaId) {
+            if (confirm("Sei sicuro di voler eliminare questa scommessa?")) {
+                // Esegui una chiamata Ajax o simile per eliminare la scommessa
+                fetch('/elimina_scommessa/' + scommessaId, {
+                    method: 'DELETE'
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Ricarica la pagina o aggiorna dinamicamente la lista delle scommesse
+                        location.reload();
+                    })
+                    .catch(error => {
+                        console.error('Errore durante l\'eliminazione della scommessa:', error);
+                    });
+            }
+        }
+    
+        function rimuoviSchedina(cartId) {
+            // Trova l'elemento che contiene l'ID della schedina da rimuovere
+            const schedinaElement = document.querySelector(`#schedina-${cartId}`);
+            if (!schedinaElement) {
+                alert("Schedina non trovata.");
+                return;
+            }
+
+            // Ottieni il cart-id dalla schedina
+            const cartIdElement = schedinaElement.querySelector('.cart-id');
+            const idSchedina = cartIdElement ? cartIdElement.innerText.trim() : null;
+
+            if (!idSchedina) {
+                alert("ID schedina non trovato.");
+                return;
+            }
+
+            fetch(`/rimuovi_schedina/${idSchedina}`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert("Schedina rimossa con successo!");
+                        document.getElementById(`schedina-${cartId}`).remove(); // Rimuove il div della schedina dalla pagina
+                        aggiornaNumerazioneSchedine(); // Aggiorna la numerazione delle schedine
+
+                    } else {
+                        alert("Errore durante la rimozione della schedina Forse qui.");
+                    }
+                })
+        }
+
+        function aggiornaNumerazioneSchedine() {
+            const schedine = document.querySelectorAll('.schedina-group');
+            schedine.forEach((schedina, index) => {
+                const titolo = schedina.querySelector('h3');
+                titolo.textContent = `Schedina ${index + 1}`;
+                schedina.id = `schedina-${index + 1}`;
+                const verificaButton = schedina.querySelector('.btn-primary');
+                const rimuoviButton = schedina.querySelector('.btn-danger');
+                verificaButton.setAttribute('onclick', `verificaGiocata(${index + 1})`);
+                rimuoviButton.setAttribute('onclick', `rimuoviSchedina(${index + 1})`);
+            });
+        }
+    
+    </script>
+
+</body>
+
+</html>

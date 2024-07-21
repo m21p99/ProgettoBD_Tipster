@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizza Partite</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='try1.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Risultati Partite</h1>
+        <table class="event-table">
+            <thead>
+                <tr>
+                    <th>Ora</th>
+                    <th>Competizione</th>
+                    <th>Evento</th>
+                    <th>Esito</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for match in matches %}
+                <tr class="event-row">
+                    <td class="event-time">{{ match.date_start }}</td>
+                    <td class="event-teams">{{ match.competition_name }}</td>
+                    <td class="event-teams">{{ match.home_team_name }} - {{ match.away_team_name }}</td>
+                    <td class="event-teams">{{ match.finalResult }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var buttons = document.querySelectorAll('.odds-button');
+            var cart = document.getElementById('cart');
+            var clearCartButton = document.getElementById('clear-cart');
+
+            buttons.forEach(function(button) {
+                button.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    var oddType = this.getAttribute('data-odd-type');
+                    var matchId = this.getAttribute('data-match-id');
+                    var teams = this.closest('tr').querySelector('.event-teams').textContent;
+                    var oddValue = this.textContent;
+
+                    console.log('Odd Type:', oddType);
+                    console.log('Match ID:', matchId);
+
+                    // Aggiungi la quota selezionata al carrello
+                    var listItem = document.createElement('li');
+                    listItem.textContent = teams + ' - Quota ' + oddType + ': ' + oddValue;
+                    listItem.setAttribute('data-match-id', matchId);
+                    listItem.setAttribute('data-odd-type', oddType);
+                    cart.appendChild(listItem);
+                });
+            });
+
+            // Funzione per svuotare il carrello
+            clearCartButton.addEventListener('click', function() {
+                cart.innerHTML = '';
+            });
+        });
+    </script>
+</body>
+</html>

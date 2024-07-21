@@ -3,189 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Homepage Tipster</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            width: 80%;
-            margin: 0 auto;
-            text-align: center;
-        }
-        .header {
-            background-color: #333;
-            color: #fff;
-            padding: 10px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .header h1 {
-            margin: 0;
-            flex: 1;
-            text-align: center;
-        }
-        .header .buttons {
-            flex: 1;
-            text-align: right;
-            margin-right: 20px;
-        }
-        .header .buttons a {
-            color: #fff;
-            background-color: #5cb85c;
-            padding: 10px 20px;
-            text-decoration: none;
-            border-radius: 5px;
-            margin-left: 10px;
-            cursor: pointer;
-        }
-        .features {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
-            margin-top: 20px;
-        }
-        .feature {
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 20px;
-            margin: 10px;
-            width: 30%;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .feature img {
-            max-width: 100%;
-            height: auto;
-        }
-        .feature h3 {
-            color: #333;
-        }
-        .feature p {
-            color: #777;
-        }
-        .footer {
-            background-color: #333;
-            color: #fff;
-            padding: 10px 0;
-            margin-top: 20px;
-        }
-        /* Stili per il pop-up */
-        /* Stili per il modale */
-        .modal {
-            display: none; /* Assicura che il modale non sia visibile inizialmente */
-            position: fixed; /* Posiziona il modale in modo fisso rispetto alla finestra del browser */
-            z-index: 999; /* Assicura che il modale sia sopra tutti gli altri contenuti */
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto; /* Aggiunge uno scroll se il contenuto del modale è più grande della finestra del browser */
-            background-color: rgba(0,0,0,0.4); /* Sfondo semitrasparente */
-        }
-
-        .modal-content {
-            background-color: #fefefe;
-            margin: 5% auto; /* Posiziona il modale al centro della pagina */
-            padding: 20px;
-            width: 45%; /* Larghezza del modale */
-        }
-
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
-
-        .close:hover,
-        .close:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
-    </style>
+    <title>Tipster Homepage</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styleIndex.css') }}">    
 </head>
 <body>
-<div class="header">
-    <h1>Tipster Homepage</h1>
-    <div class="buttons">
-        <a id="loginBtn" class="login-btn" data-login-url="{{ url_for('Login') }}">Login</a>
-    </div>
-</div>
-
-
-<div class="container">
-    <div class="features">
-        {% for user in tipster_users %}
-        {% set index = loop.index0 %}  {# Ottieni l'indice corrente #}
-        {% set profile_image = profile_images_list[index % profile_images_list|length] %}  {# Utilizza l'indice per ottenere l'immagine del profilo #}
-        <div class="feature">
-            <a href="#">
-                <img src="{{ url_for('static', filename='imageProfile/' + profile_image) }}" alt="Foto profilo di {{ user['name'] }}">
-                <h3>{{ user['name'] }}</h3>
-            </a>
-            <p>Username: {{ user['username'] }}</p>
+    <div class="header">
+        <h1>Tipster Homepage</h1>
+        <div class="buttons">
+            <a id="loginBtn" class="login-btn" href="javascript:void(0)">Login</a>
         </div>
-        {% endfor %}
     </div>
-</div>
-<div class="container">
-    <div class="features">
-        {% for user in tipster_users %}
-        {% set index = loop.index0 %}  {# Ottieni l'indice corrente #}
-        {% set profile_image = profile_images_list[index % profile_images_list|length] %}  {# Utilizza l'indice per ottenere l'immagine del profilo #}
-        <div class="feature">
-            <a href="#">
-                <img src="{{ url_for('static', filename='imageProfile/' + profile_image) }}" alt="Foto profilo di {{ user['name'] }}">
-                <h3>{{ user['name'] }}</h3>
-            </a>
-            <p>Username: {{ user['username'] }}</p>
+
+    <div class="container mt-5">
+        <form class="form-inline my-2 my-lg-0">
+            <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" name="query">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+        </form>
+    </div>
+
+    <div class="container">
+        <div class="features">
+            {% for user in tipster_users %}
+            {% set index = loop.index0 %}  {# Ottieni l'indice corrente #}
+            {% set profile_image = profile_images_list[index % profile_images_list|length] %}  {# Utilizza l'indice per ottenere l'immagine del profilo #}
+            <div class="feature">
+                <a href="#">
+                    <img src="{{ url_for('static', filename='imageProfile/' + profile_image) }}" alt="Foto profilo di {{ user['name'] }}">
+                    <h3>{{ user['name'] }}</h3>
+                </a>
+                <p>Username: {{ user['username'] }}</p>
+            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
-</div>
 
-
-
-<!-- Modale -->
-<div id="loginModal" class="modal">
-    <div class="modal-content">
-        <span class="close">&times;</span>
-        <div id="modalBody"></div>
+    <!-- Modale -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="modalBody"></div>
+        </div>
     </div>
-</div>
 
+    <script>
+        document.getElementById('loginBtn').onclick = function() {
+            document.getElementById('loginModal').style.display = "block";
+            var loginUrl = "{{ url_for('Login') }}"; // Percorso al login generato da Flask
+            fetch(loginUrl) 
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('modalBody').innerHTML = html;
+                });
+        }
 
-
-<script>
-    document.getElementById('loginBtn').onclick = function() {
-        document.getElementById('loginModal').style.display = "block";
-        var loginUrl = this.getAttribute('data-login-url');
-        fetch(loginUrl) // Utilizza il percorso generato da Flask
-            .then(response => response.text())
-            .then(html => {
-            document.getElementById('modalBody').innerHTML = html;
-        });
-    }
-
-
-
-    // Chiudi il modale
-    document.querySelector('.close').onclick = function() {
-        document.getElementById('loginModal').style.display = "none";
-    }
-
-    // Chiudi il modale quando clicchi fuori
-    window.onclick = function(event) {
-        if (event.target == document.getElementById('loginModal')) {
+        // Chiudi il modale
+        document.querySelector('.close').onclick = function() {
             document.getElementById('loginModal').style.display = "none";
         }
-    }
-</script>
+
+        // Chiudi il modale quando clicchi fuori
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('loginModal')) {
+                document.getElementById('loginModal').style.display = "none";
+            }
+        }
+    </script>
 </body>
 </html>

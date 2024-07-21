@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizza Partite</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='try.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Risultati Partite</h1>
+        <table class="event-table">
+            <thead>
+                <tr>
+                    <th>Ora</th>
+                    <th>Evento</th>
+                    <th>1</th>
+                    <th>X</th>
+                    <th>2</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for match in matches %}
+                <tr class="event-row">
+                    <td class="event-time">{{ match.date_start }}</td>
+                    <td class="event-teams">{{ match.home_team_name }} - {{ match.away_team_name }}</td>
+                    <td class="odds-cell">
+                        <button type="button" class="odds-button" data-match-id="{{ match.match_id }}" data-odd-type="1"
+                            onclick="fetchEventDetails({{ match.match_id }}, '1')">
+                            {{ match.home_team_odd }}
+                        </button>
+                    </td>
+                    <td class="odds-cell">
+                        <button type="button" class="odds-button" data-match-id="{{ match.match_id }}" data-odd-type="X"
+                            onclick="fetchEventDetails({{ match.match_id }}, 'X')">
+                            {{ match.tie_odd }}
+                        </button>
+                    </td>
+                    <td class="odds-cell">
+                        <button type="button" class="odds-button" data-match-id="{{ match.match_id }}" data-odd-type="2"
+                            onclick="fetchEventDetails({{ match.match_id }}, '2')">
+                            {{ match.away_team_odd }}
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="cart-container">
+        <h2>Carrello</h2>
+        <ul id="cart">
+            <!-- Selected odds will be added here -->
+        </ul>
+        <button id="clear-cart">Svuota Carrello</button>
+        <button id="confirm-cart" onclick="confirmCart()">Conferma Schedina</button>
+    </div>
+
+    <script>
+        function fetchEventDetails(matchId, oddType) {
+            fetch(`/event/${matchId}`)
+                .then(response => response.json())
+                .then(data => {
+                    var oddValue;
+                    switch (oddType) {
+                        case '1':
+                            oddValue = data.home_team_odd;
+                            break;
+                        case 'X':
+                            oddValue = data.tie_odd;
+                            break;
+                        case '2':
+                            oddValue = data.away_team_odd;
+                            break;
+                        default:
+                            oddValue = 'N/D';
+                            break;
+                    }
+
+                    var existingCartItem = document.querySelector(`#cart li[data-match-id="${matchId}"]`);
+                    if (existingCartItem) {
+                        existingCartItem.remove();
+                    }
+
+                    var cartItem = document.createElement('li');
+                    cartItem.setAttribute('data-match-id', matchId);
+                    cartItem.classList.add('cart-item');
+                    cartItem.innerHTML = `<strong>Ora:</strong> ${data.date_start} - <strong>Evento:</strong> ${data.home_team_name} vs ${data.away_team_name} - <strong>Esito:</strong> ${oddType} - <strong>Quota:</strong> ${oddValue}
+                                        <button class="remove-button" onclick="removeFromCart(${matchId})">Rimuovi</button>`;
+
+                    var cartList = document.getElementById('cart');
+                    cartList.appendChild(cartItem);
+
+                    var cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+                    cartItems = cartItems.filter(item => item.matchId !== matchId);
+                    cartItems.push({ matchId, date_start: data.date_start, home_team_name: data.home_team_name, away_team_name: data.away_team_name, oddType, oddValue });
+                    localStorage.setItem('cartItems', JSON.stringify(cartItems));
+                })
+                .catch(error => console.error('Errore durante il recupero dei dettagli dell\'evento:', error));
+        }
+
+        function removeFromCart(matchId) {
+            var cartItem = document.querySelector(`#cart li[data-match-id="${matchId}"]`);
+            if (cartItem) {
+                cartItem.remove();
+            }
+
+            var cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+            cartItems = cartItems.filter(item => item.matchId !== matchId);
+            localStorage.setItem('cartItems', JSON.stringify(cartItems));
+        }
+
+        function confirmCart() {
+            var cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+            var userId = '{{ user_id }}'; // Preleva l'ID utente dal contesto di Jinja2
+
+            var payload = {
+                userId: userId,
+                cartItems: cartItems
+            };
+
+            fetch('/add_to_cart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    localStorage.removeItem('cartItems');
+                    document.getElementById('cart').innerHTML = '';
+                })
+                .catch(error => console.error('Errore durante la conferma della schedina:', error));
+        }
+
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var clearCartButton = document.getElementById('clear-cart');
+            clearCartButton.addEventListener('click', function () {
+                document.getElementById('cart').innerHTML = '';
+                localStorage.removeItem('cartItems');
+            });
+
+            var cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+            var cartList = document.getElementById('cart');
+            cartItems.forEach(item => {
+                var cartItem = document.createElement('li');
+                cartItem.setAttribute('data-match-id', item.matchId);
+                cartItem.classList.add('cart-item');
+                cartItem.innerHTML = `<strong>Ora:</strong> ${item.date_start} - <strong>Evento:</strong> ${item.home_team_name} vs ${item.away_team_name} - <strong>Esito:</strong> ${item.oddType} - <strong>Quota:</strong> ${item.oddValue}
+                                    <button class="remove-button" onclick="removeFromCart(${item.matchId})">Rimuovi</button>`;
+                cartList.appendChild(cartItem);
+            });
+        });
+    </script>
+</body>
+
+</html>

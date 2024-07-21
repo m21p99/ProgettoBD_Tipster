@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matches</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='try.css') }}">
+</head>
+<body>
+    <div class="container">
+        <table class="event-table">
+            <thead>
+                <tr>
+                    <th>Ora</th>
+                    <th>Competizione</th>
+                    <th>Evento</th>
+                    <th>1</th>
+                    <th>X</th>
+                    <th>2</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for match in matches %}
+                <tr class="event-row">
+                    <td class="event-time">{{ match.date_start }}</td>
+                    <td class="event-teams">{{ match.competition_name }}</td>
+                    <td class="event-teams">{{ match.home_team_name }} - {{ match.away_team_name }}</td>
+                    <td class="odds-cell">
+                        <button class="odds-button {% if match.selected_odd == '1' %}selected{% endif %}" 
+                                data-match-id="{{ match.match_id }}" data-odd-type="1">
+                            {{ match.home_team_odd }}
+                        </button>
+                    </td>
+                    <td class="odds-cell">
+                        <button class="odds-button {% if match.selected_odd == 'X' %}selected{% endif %}" 
+                                data-match-id="{{ match.match_id }}" data-odd-type="X">
+                            {{ match.tie_odd }}
+                        </button>
+                    </td>
+                    <td class="odds-cell">
+                        <button class="odds-button {% if match.selected_odd == '2' %}selected{% endif %}" 
+                                data-match-id="{{ match.match_id }}" data-odd-type="2">
+                            {{ match.away_team_odd }}
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
