@@ -14,7 +14,8 @@
         <table class="event-table">
             <thead>
                 <tr>
-                    <th>Ora</th>
+                    <th>Ora Inizio</th>
+                    <th>Variazione Quota</th>
                     <th>Evento</th>
                     <th>1</th>
                     <th>X</th>
@@ -25,6 +26,7 @@
                 {% for match in matches %}
                 <tr class="event-row">
                     <td class="event-time">{{ match.date_start }}</td>
+                    <td class="event-time">{{ match.date_created }}</td>
                     <td class="event-teams">{{ match.home_team_name }} - {{ match.away_team_name }}</td>
                     <td class="odds-cell">
                         <button type="button" class="odds-button" data-match-id="{{ match.match_id }}" data-odd-type="1"

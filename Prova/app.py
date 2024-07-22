@@ -7,13 +7,20 @@ from bson.json_util import dumps
 from datetime import datetime
 from bson import ObjectId
 from collections import defaultdict
+from flask_session import Session
 
 # Percorso della directory delle immagini del profilo
 
 # Recupera la lista dei file nell'elenco delle immagini del profilo
 
 app = Flask(__name__)
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_FILE_DIR'] = './session_files/'
+
 app.secret_key = "supersecretkey"
+
+Session(app)
+
 
 client = MongoClient("mongodb://localhost:27017/")
 db = client["tipster_platform"]
@@ -21,6 +28,8 @@ users_collection = db["users"]
 matches_collection = db["matches_odds"]
 matches_collection_results = db["matches_results"]
 schedina = db["schedina"]
+
+matches_collection_QuotaFinale = db["matches_odds_final"]
 
 @app.route("/Login", methods=["GET", "POST"])
 def Login():
@@ -43,31 +52,7 @@ def Login():
 
     return render_template("login.html")
 
-"""
-@app.route('/home')
-def home():
-    if 'user_id' in session:
-        user_id = session['user_id']
-        user = users_collection.find_one({'username': user_id})
-        if user:
-            return f"Welcome, {user['username']}!"
-        else:
-            logging.debug(f"User with id {user_id} not found.")
-            return redirect(url_for('Login'))
-    else:
-        logging.debug("No user_id in session.")
-    return redirect(url_for('Login'))
 
-
-
-@app.route('/logout')
-def logout():
-    # Rimuovi l'ID utente dalla sessione
-    session.pop('user_id', None)
-    logging.debug("User logged out.")
-    return redirect(url_for('Login'))
-
-"""
 @app.route("/Registration", methods=["GET", "POST"])
 def Registration():
     if request.method == "POST":
@@ -141,7 +126,7 @@ def logout():
     return redirect(url_for("homepage"))
 
 
-
+"""
 @app.route('/filtro_partite1', methods=['POST'])
 def filtro_partite1():
     campionati_selezionati = request.form.getlist('championship')
@@ -162,13 +147,35 @@ def filtro_partite1():
             {"$sort": {"date_start": 1}}
         ]
         
+        
+
+
         result = list(matches_collection.aggregate(pipeline))
         session['matches'] = result  # Memorizza i match nella sessione
         return redirect(url_for('visualizza_partite'))  # Reindirizza alla pagina 'crea_schedina'
     
     return "Nessun campionato selezionato", 400
 
+"""
+@app.route('/filtro_partite1', methods=['POST'])
+def filtro_partite1():
+    campionati_selezionati = request.form.getlist('championship')
+    if campionati_selezionati:
+        competition_name = campionati_selezionati[0]
+        pipeline = [
+            {"$match": {"competition_name": competition_name}},
+            {"$sort": {"date_start": 1}}
+        ]
 
+        result = list(matches_collection_QuotaFinale.aggregate(pipeline))
+
+        
+
+        session['matches'] = result  # Memorizza i match nella sessione
+        #session['matches'] = best_odds  # Memorizza i match nella sessione
+        return redirect(url_for('visualizza_partite'))  # Reindirizza alla pagina 'visualizza_partite'
+    
+    return "Nessun campionato selezionato", 400
 
 @app.route('/visualizza_partite', methods=['GET', 'POST'])
 def visualizza_partite():
@@ -257,9 +264,9 @@ def filtro_partite():
         }},
         {"$sort": {"date_start": 1}}
     ]
-        result = list(matches_collection.aggregate(pipeline))
+        result = list(matches_collection_QuotaFinale.aggregate(pipeline))
         print("Risultato", result)
-        return render_template('try.html',matches=result)
+        return render_template('try.html', matches=result)
     elif campionamenti_selezionati_list and over_under == "over25" and gol_nogol == "":
         print("ci sono altri parametri", campionamenti_selezionati_list,over_under,gol_nogol)
         view = []
@@ -768,6 +775,9 @@ def search_tipster():
         results = users_collection.find({'username': {'$regex': f'^{query}', '$options': 'i'}})
         return dumps(results)
     return jsonify([])
+
+
+
 
 
 if __name__ == '__main__':
